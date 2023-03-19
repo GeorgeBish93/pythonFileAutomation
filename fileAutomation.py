@@ -2,9 +2,11 @@ import openpyxl as xl
 from openpyxl.chart import BarChart,Reference
 
 
+# function that gets file src and return a workbook object 'wb' from the loaded file
 def load_workbook(filename):
-    #Load excel file and return a workbook object 'wb'
+    #Load
     return xl.load_workbook(filename)
+
 
 def customers_type(filename,wb):
     # access the sheet in the wb
