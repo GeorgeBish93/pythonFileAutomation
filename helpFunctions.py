@@ -1,6 +1,9 @@
 
 from datetime import datetime
 
+def get_percentage(count, total):
+    return ((count / total) * 100)
+
 def create_month_dict():
     # stores sales by month using dictionary
     data = {

@@ -4,13 +4,10 @@ import helpFunctions as hf
 
 from datetime import datetime
 
-
-
 # function that gets file src and return a workbook object 'wb' from the loaded file
 def load_workbook(filename):
     #Load
     return xl.load_workbook(filename)
-
 
 
 def payment_method_by_gender(wb, sheet, exportFilename):
@@ -21,49 +18,53 @@ def payment_method_by_gender(wb, sheet, exportFilename):
     ewalletF = 0
     ewalletM = 0
 
+    paymentMethodTuple = ("Ewallet", "Cash", "Credit card")
+    genderTuple = ("Male", "Female")
+
     # for lop that run on rows
     for row in range(2, sheet.max_row + 1):
         genderCell = sheet.cell(row, 5)
         paymentCell = sheet.cell(row, 13)
 
-        if paymentCell.value == "Ewallet":
-            if genderCell.value == "Female":
+        if paymentCell.value == paymentMethodTuple[0]:
+            if genderCell.value == genderTuple[1]:
                 ewalletF += 1
-            if genderCell.value == "Male":
+            if genderCell.value == genderTuple[0]:
                 ewalletM += 1
-        if paymentCell.value == "Cash":
-            if genderCell.value == "Female":
+        if paymentCell.value == paymentMethodTuple[1]:
+            if genderCell.value == genderTuple[1]:
                 cashF += 1
-            if genderCell.value == "Male":
+            if genderCell.value == genderTuple[0]:
                 cashM += 1
-        if paymentCell.value == "Credit card":
-            if genderCell.value == "Female":
+        if paymentCell.value == paymentMethodTuple[2]:
+            if genderCell.value == genderTuple[1]:
                 cardF += 1
-            if genderCell.value == "Male":
+            if genderCell.value == genderTuple[0]:
                 cardM += 1
 
-    cashTotal = cashM+cashF
-    percentageCashF = (cashF / cashTotal) * 100
-    percentageCashM = (cashM / cashTotal) * 100
+    maleTotal = cashM + cardM + ewalletM
+    femaleTotal = cashF + cardF + ewalletF
 
-    cardTotal = cardF+cardM
-    percentageCardF = (cardF / cardTotal) * 100
-    percentageCardM = (cardM / cardTotal) * 100
+    percentageCashF = hf.get_percentage(cashF, femaleTotal)
+    percentageCashM = hf.get_percentage(cashM, maleTotal)
 
-    eWalletTotal = ewalletM + ewalletF
-    percentageWalletF = (ewalletF / eWalletTotal) * 100
-    percentageWalletM = (ewalletM / eWalletTotal) * 100
+    percentageCardF = hf.get_percentage(cardF, femaleTotal)
+    percentageCardM = hf.get_percentage(cardM, maleTotal)
+
+    percentageWalletF = hf.get_percentage(ewalletF, femaleTotal)
+    percentageWalletM = hf.get_percentage(ewalletM, maleTotal)
 
     #add new sheet
     sheet_data = (
-        ("", "Cash%", "Credit Card%", "Ewallet%"),
-        ("Male", percentageCashM, percentageCardM, percentageWalletM),
-        ("Female", percentageCashF, percentageCardF, percentageWalletF)
+        ("", paymentMethodTuple[1]+"%", paymentMethodTuple[2]+"%", paymentMethodTuple[0]+"%"),
+        (genderTuple[0], percentageCashM, percentageCardM, percentageWalletM),
+        (genderTuple[1], percentageCashF, percentageCardF, percentageWalletF)
     )
     new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "PaymentMethodByGender")
-
-
+    gc.payment_bar_chart(wb,new_sheet)
     wb.save(exportFilename)
+
+
 
 def sales_by_category(wb, sheet, exportFilename):
     fashion = 0
@@ -71,35 +72,46 @@ def sales_by_category(wb, sheet, exportFilename):
     electronic = 0
     sport = 0
     home = 0
-    health =0
+    health = 0
+    categoriesTuple = ("Fashion accessories", "Food and beverages", "Electronic accessories", "Sports and travel",
+                  "Home and lifestyle", "Health and beauty")
 
     #for lop that run on rows
     for row in range(2,sheet.max_row +1):
         categoryCell = sheet.cell(row,6)
         totalCell = sheet.cell(row,10)
 
-        if categoryCell.value == "Fashion accessories":
+        if categoryCell.value == categoriesTuple[0]:
             fashion += int(totalCell.value)
-        if categoryCell.value == "Food and beverages":
+        if categoryCell.value == categoriesTuple[1]:
             food += int(totalCell.value)
-        if categoryCell.value == "Electronic accessories":
+        if categoryCell.value == categoriesTuple[2]:
             electronic += int(totalCell.value)
-        if categoryCell.value == "Sports and travel":
+        if categoryCell.value == categoriesTuple[3]:
             sport += int(totalCell.value)
-        if categoryCell.value == "Home and lifestyle":
+        if categoryCell.value == categoriesTuple[4]:
             home += int(totalCell.value)
-        if categoryCell.value == "Health and beauty":
+        if categoryCell.value == categoriesTuple[5]:
             health += int(totalCell.value)
 
 
     #add new sheet
     sheet_data = (
-        ("", "Electronic accessories", "Fashion accessories", "Food and beverages", "Health and beauty", "Home and lifestyle", "Sports and travel" ),
-        ("Total Sales(US Dollars)", electronic, fashion, food, health, home, sport)
+        ("", "Total Sales(US Dollars)"),
+        (categoriesTuple[0], electronic),
+        (categoriesTuple[1], fashion),
+        (categoriesTuple[2], food),
+        (categoriesTuple[3], health),
+        (categoriesTuple[4], home),
+        (categoriesTuple[5], sport)
     )
     new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "SalesByCategory")
 
+    #call charts functions
+    gc.category_bar_chart(wb,new_sheet)
+    gc.category_pie_chart(wb,new_sheet)
     wb.save(exportFilename)
+
 
 def sales_by_month(wb, sheet, exportFilename):
     #stores sales by month using dictionary
@@ -142,11 +154,21 @@ def sales_by_month(wb, sheet, exportFilename):
     data = hf.round_dict_values(data);
 
     #create new sheet
+
     sheet_data = (
-        ('', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
-        ("Total Sales(US Dollar)", data["January"], data["February"], data["March"], data["April"],
-         data["May"], data["June"], data["July"], data["August"], data["September"], data["October"],
-         data["November"],data["December"])
+        ('', 'Total Sales(US Dollar)'),
+        ("January", data["January"]),
+        ("February", data["February"]),
+        ("March", data["March"]),
+        ("April", data["April"]),
+        ("May", data["May"]),
+        ("June", data["June"]),
+        ("July", data["July"]),
+        ("August", data["August"]),
+        ("September", data["September"]),
+        ("October", data["October"]),
+        ("November", data["November"]),
+        ("December", data["December"])
     )
     new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "SalesByMonth")
 
@@ -171,7 +193,7 @@ def net_income(wb, sheet, exportFilename):
 
     #create new sheet
     sheet_data = (
-        ("", "Total Taxes", "Total Income", "Net Income"),
+        ("", "Total Taxes", "Total Income", "Total NetIncome"),
         ("US Dollar",taxes,total,(total-taxes))
     )
     new_sheet = hf.add_sheet_to_wb(wb,  sheet_data, "NetIncome")
