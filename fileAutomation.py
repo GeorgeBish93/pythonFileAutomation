@@ -57,8 +57,8 @@ def payment_method_by_gender(wb, sheet, exportFilename):
     #add new sheet
     sheet_data = (
         ("", paymentMethodTuple[1]+"%", paymentMethodTuple[2]+"%", paymentMethodTuple[0]+"%"),
-        (genderTuple[0], percentageCashM, percentageCardM, percentageWalletM),
-        (genderTuple[1], percentageCashF, percentageCardF, percentageWalletF)
+        (genderTuple[0], round(percentageCashM), round(percentageCardM), round(percentageWalletM)),
+        (genderTuple[1], round(percentageCashF), round(percentageCardF), round(percentageWalletF))
     )
     new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "PaymentMethodByGender")
     gc.payment_bar_chart(wb,new_sheet)
