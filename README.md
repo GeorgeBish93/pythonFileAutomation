@@ -10,8 +10,8 @@ The data visualization was done using the python library openpyxl charts.<br>
 Data Source Link: https://www.kaggle.com/datasets/aungpyaeap/supermarket-sales
 
 #
+![qq](https://user-images.githubusercontent.com/45227782/226384898-cb62ba0b-57b7-4e2d-a3cd-f7f2eb5b86e7.jpg)
 
-![pybg](https://user-images.githubusercontent.com/45227782/226383858-4d73a33d-bb2e-454c-8045-38c6e63526a0.jpg)
 #
 
 ![sbc](https://user-images.githubusercontent.com/45227782/226383987-67b8f30a-352d-40d1-8715-8ad4ca01435b.jpg)
