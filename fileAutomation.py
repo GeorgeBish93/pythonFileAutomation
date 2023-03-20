@@ -1,5 +1,9 @@
 import openpyxl as xl
-from openpyxl.chart import BarChart,PieChart,Reference
+import generateCharts as gc
+import helpFunctions as hf
+
+from datetime import datetime
+
 
 
 # function that gets file src and return a workbook object 'wb' from the loaded file
@@ -8,163 +12,154 @@ def load_workbook(filename):
     return xl.load_workbook(filename)
 
 
-def customers_type(filename,wb):
-    # access the sheet in the wb
-    sheet = wb['Worksheet']
-    member = 0
-    normal = 0
-    #for lop that run on rows
-    for row in range(2,sheet.max_row +1):
-        cell = sheet.cell(row,4)
 
-        if cell.value == "Member":
-            member += 1
-        if cell.value == "Normal":
-            normal += 1
+def payment_method_by_gender(wb, sheet, exportFilename):
+    cashF = 0
+    cashM = 0
+    cardF = 0
+    cardM = 0
+    ewalletF = 0
+    ewalletM = 0
 
-    wb.create_sheet('CustomerType')
-    new_sheet = wb['CustomerType']
-    data = (
-        ("Customer Type","Normal Customer", "Member Customer"),
-        ("Total Customers",normal,member)
+    # for lop that run on rows
+    for row in range(2, sheet.max_row + 1):
+        genderCell = sheet.cell(row, 5)
+        paymentCell = sheet.cell(row, 13)
+
+        if paymentCell.value == "Ewallet":
+            if genderCell.value == "Female":
+                ewalletF += 1
+            if genderCell.value == "Male":
+                ewalletM += 1
+        if paymentCell.value == "Cash":
+            if genderCell.value == "Female":
+                cashF += 1
+            if genderCell.value == "Male":
+                cashM += 1
+        if paymentCell.value == "Credit card":
+            if genderCell.value == "Female":
+                cardF += 1
+            if genderCell.value == "Male":
+                cardM += 1
+
+    cashTotal = cashM+cashF
+    percentageCashF = (cashF / cashTotal) * 100
+    percentageCashM = (cashM / cashTotal) * 100
+
+    cardTotal = cardF+cardM
+    percentageCardF = (cardF / cardTotal) * 100
+    percentageCardM = (cardM / cardTotal) * 100
+
+    eWalletTotal = ewalletM + ewalletF
+    percentageWalletF = (ewalletF / eWalletTotal) * 100
+    percentageWalletM = (ewalletM / eWalletTotal) * 100
+
+    #add new sheet
+    sheet_data = (
+        ("", "Cash%", "Credit Card%", "Ewallet%"),
+        ("Male", percentageCashM, percentageCardM, percentageWalletM),
+        ("Female", percentageCashF, percentageCardF, percentageWalletF)
     )
-    for i in data:
-        new_sheet.append(i)
-
-    values = Reference(new_sheet,
-                       min_row=2,
-                       max_row=2,
-                       min_col=2,
-                       max_col=3)
-
-    chart = BarChart()
-    chart.add_data(values,titles_from_data=True)
-    chart.title = 'Customers By Membership'
-    chart.x_axis.title = 'Customer Type'
-    chart.y_axis.title = 'Number of Customers'
-    chart.legend.position = 'r'
-    new_sheet.add_chart(chart, 'f2')
-
-    wb.save(filename)
+    new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "PaymentMethodByGender")
 
 
-def customers_payment_method(filename,wb):
-    sheet = wb['Worksheet']
-    cash = 0
-    card = 0
-    ewallet = 0
+    wb.save(exportFilename)
 
-    #for lop that run on rows
-    for row in range(2,sheet.max_row +1):
-        cell = sheet.cell(row, 13)
-
-        if cell.value == "Ewallet":
-            ewallet += 1
-        if cell.value == "Cash":
-            cash += 1
-        if cell.value == "Credit card":
-            card += 1
-
-    wb.create_sheet('PaymentMethod')
-    new_sheet = wb['PaymentMethod']
-    data = (
-        ("", "Cash", "Credit Card", "Ewallet"),
-        ("Total Customers", cash,card, ewallet )
-    )
-    for i in data:
-        new_sheet.append(i)
-
-    #create the chart and the references
-    chart = PieChart()
-    data = Reference(new_sheet, min_col=2, max_col=4, min_row=2, max_row=2)
-    labels = Reference(new_sheet, min_col=2, max_col=4, min_row=1)
-
-    #set the title, add the data to the chart and set the categories
-    chart.title = 'Customer Payment Method Distribution'
-    chart.add_data(data, titles_from_data=True)
-    chart.set_categories(labels)
-
-    #add the chart and save the workbook as a new file
-    new_sheet.add_chart(chart, 'F5')
-    wb.save("filename.xlsx")
-
-def branch_customers(filename,wb):
-    sheet = wb['Worksheet']
-    branchA = 0
-    branchB = 0
-    branchC = 0
-
-    #for lop that run on rows
-    for row in range(2,sheet.max_row +1):
-        cell = sheet.cell(row,2)
-
-        if cell.value == "A":
-            branchA += 1
-        if cell.value == "B":
-            branchB += 1
-        if cell.value == "C":
-            branchC += 1
-
-    wb.create_sheet('BranchCustomers')
-    new_sheet = wb['BranchCustomers']
-    data = (
-        ("Branch","Total Customers"),
-        ("A",branchA),
-        ("B", branchB),
-        ("C", branchC)
-    )
-    for i in data:
-        new_sheet.append(i)
-
-    wb.save(filename)
-
-def category_sales(filename,wb):
-    sheet = wb['Worksheet']
+def sales_by_category(wb, sheet, exportFilename):
     fashion = 0
     food = 0
     electronic = 0
     sport = 0
     home = 0
+    health =0
 
     #for lop that run on rows
     for row in range(2,sheet.max_row +1):
-        cell = sheet.cell(row,6)
+        categoryCell = sheet.cell(row,6)
+        totalCell = sheet.cell(row,10)
 
-        if cell.value == "Fashion accessories":
-            fashion += 1
-        if cell.value == "Food and beverages":
-            food += 1
-        if cell.value == "Electronic accessories":
-            electronic += 1
-        if cell.value == "Sports and travel":
-            sport += 1
-        if cell.value == "Home and lifestyle":
-            home += 1
+        if categoryCell.value == "Fashion accessories":
+            fashion += int(totalCell.value)
+        if categoryCell.value == "Food and beverages":
+            food += int(totalCell.value)
+        if categoryCell.value == "Electronic accessories":
+            electronic += int(totalCell.value)
+        if categoryCell.value == "Sports and travel":
+            sport += int(totalCell.value)
+        if categoryCell.value == "Home and lifestyle":
+            home += int(totalCell.value)
+        if categoryCell.value == "Health and beauty":
+            health += int(totalCell.value)
 
 
-
-    wb.create_sheet('CategotySales')
-    new_sheet = wb['CategotySales']
-    data = (
-        ("Category","Total Products Sold"),
-        ("Fashion accessories",fashion),
-        ("Food and beverages", food),
-        ("Electronic accessories", electronic),
-        ("Sports and travel", sport),
-        ("Home and lifestyle", home)
-
+    #add new sheet
+    sheet_data = (
+        ("", "Electronic accessories", "Fashion accessories", "Food and beverages", "Health and beauty", "Home and lifestyle", "Sports and travel" ),
+        ("Total Sales(US Dollars)", electronic, fashion, food, health, home, sport)
     )
-    for i in data:
-        new_sheet.append(i)
+    new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "SalesByCategory")
 
-    wb.save(filename)
+    wb.save(exportFilename)
+
+def sales_by_month(wb, sheet, exportFilename):
+    #stores sales by month using dictionary
+    data = hf.create_month_dict();
+
+    #for lop that run on rows
+    for row in range(2,sheet.max_row +1):
+        totalCell = sheet.cell(row,10)
+        dateCell = sheet.cell(row,11)
+
+        #convert date from string to date object
+        date_obj = hf.string_to_date(dateCell.value)
+
+        if date_obj.month == 1:
+            data["January"] = data["January"] + totalCell.value
+        if date_obj.month == 2:
+            data["February"] = data["February"] + totalCell.value
+        if date_obj.month == 3:
+            data["March"] = data["March"] + totalCell.value
+        if date_obj.month == 4:
+            data["April"] = data["April"] + totalCell.value
+        if date_obj.month == 5:
+            data["May"] = data["May"] + totalCell.value
+        if date_obj.month == 6:
+            data["June"] = data["June"] + totalCell.value
+        if date_obj.month == 7:
+            data["July"] = data["July"] + totalCell.value
+        if date_obj.month == 8:
+            data["August"] = data["August"] + totalCell.value
+        if date_obj.month == 9:
+            data["September"] = data["September"] + totalCell.value
+        if date_obj.month == 10:
+            data["October"] = data["October"] + totalCell.value
+        if date_obj.month == 11:
+            data["November"] = data["November"] + totalCell.value
+        if date_obj.month == 12:
+            data["December"] = data["December"] + totalCell.value
+
+    #round data values
+    data = hf.round_dict_values(data);
+
+    #create new sheet
+    sheet_data = (
+        ('', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
+        ("Total Sales(US Dollar)", data["January"], data["February"], data["March"], data["April"],
+         data["May"], data["June"], data["July"], data["August"], data["September"], data["October"],
+         data["November"],data["December"])
+    )
+    new_sheet = hf.add_sheet_to_wb(wb, sheet_data, "SalesByMonth")
+
+    # call line chart func
+    gc.sales_line_chart(wb,new_sheet)
+
+    wb.save(exportFilename)
 
 
-def net_income(filename,wb):
-    sheet = wb['Worksheet']
+
+def net_income(wb, sheet, exportFilename):
     taxes = 0
     total = 0
-    net = 0
 
     #for lop that run on rows
     for row in range(2,sheet.max_row +1):
@@ -174,70 +169,11 @@ def net_income(filename,wb):
         taxes += int(tax_cell.value)
         total += int(total_cell.value)
 
-    wb.create_sheet('NetIncome')
-    new_sheet = wb['NetIncome']
-    data = (
-        ("Total Taxes","Total Income","Net Income","Currency"),
-        (taxes,total,(total-taxes),"Dollars $")
-
+    #create new sheet
+    sheet_data = (
+        ("", "Total Taxes", "Total Income", "Net Income"),
+        ("US Dollar",taxes,total,(total-taxes))
     )
-    for i in data:
-        new_sheet.append(i)
+    new_sheet = hf.add_sheet_to_wb(wb,  sheet_data, "NetIncome")
 
-    wb.save(filename)
-
-    def payment_method_by_gender(filename, wb):
-        sheet = wb['Worksheet']
-        cashF = 0
-        cashM = 0
-        cardF = 0
-        cardM = 0
-        ewalletF = 0
-        ewalletM = 0
-
-        # for lop that run on rows
-        for row in range(2, sheet.max_row + 1):
-            genderCell = sheet.cell(row, 5)
-            paymentCell = sheet.cell(row, 13)
-
-            if paymentCell.value == "Ewallet":
-                if genderCell.value == "Female":
-                    ewalletF += 1
-                if genderCell.value == "Male":
-                    ewalletM += 1
-            if paymentCell.value == "Cash":
-                if genderCell.value == "Female":
-                    cashF += 1
-                if genderCell.value == "Male":
-                    cardM += 1
-            if paymentCell.value == "Credit Card":
-                if genderCell.value == "Female":
-                    cardF += 1
-                if genderCell.value == "Male":
-                    cardM += 1
-
-        cashTotal = cashM+cashF
-        percentageCashF = (cashF/(cashTotal))*100
-        percentageCashM = (cashM/(cashTotal))*100
-
-        cardTotal = cardF+cardM
-        percentageCardF = (cardF/(cardTotal))*100
-        percentageCardM = (cardM/(cardTotal))*100
-
-        eWalletTotal = ewalletM + ewalletF
-        percentageWalletF = (ewalletF / (eWalletTotal)) * 100
-        percentageWalletM = (ewalletM / (eWalletTotal)) * 100
-
-        wb.create_sheet('PaymentMethodByGender')
-        new_sheet = wb['PaymentMethodByGender']
-        data = (
-            ("", "Cash", "Credit Card", "Ewallet"),
-            ("Male", percentageCashM, percentageCardM, percentageWalletM),
-            ("Female", percentageCashF, percentageCardF, percentageWalletF)
-
-        )
-        for i in data:
-            new_sheet.append(i)
-
-        wb.save("filenam1.xlsx")
-
+    wb.save(exportFilename)

@@ -4,9 +4,14 @@ import fileAutomation as fa
 filename = 'sales.xlsx'
 wb = fa.load_workbook(filename)
 
-# call data automation funcions
+#Results filename
+exportFilename = "Results.xlsx"
 
-paymentsByGender = fa.payment_method_by_gender(filename,wb)
+# call data automation funcions
+paymentsByGender = fa.payment_method_by_gender(wb, wb['Worksheet'], exportFilename)
+salesByCategory = fa.sales_by_category(wb, wb['Worksheet'], exportFilename)
+salesByMonth = fa.sales_by_month(wb, wb['Worksheet'], exportFilename)
+netIncome = fa.net_income(wb, wb['Worksheet'], exportFilename)
 
 #cs = fa.customers_type(filename,wb)
 #pm = fa.customers_payment_method(filename,wb)
